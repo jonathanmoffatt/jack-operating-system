@@ -1,2 +1,4 @@
 .DS_Store
 *.vm
+*Test/*.out
+*Test/*.jack
