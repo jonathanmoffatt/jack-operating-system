@@ -77,8 +77,48 @@ class Math {
     }
 
     /** Returns the integer part of the square root of x. */
+    /*
+    Example: sqrt(64)
+        y   j   pwr
+        0   7   128
+        0   6   64
+        0   5   32
+        0   4   16
+        0   3   8   => y = 0 + 8
+        0   2   4   => no change
+
+    Example: sqrt(100)
+        y   j    pwr
+        0   7   128
+        ...
+        0   3   8   => y = 8
+        8   2   4   => (8+4)^2 not <= 100
+        8   1   2   => (8+2)^2 == 100, so y = 8+2 = 10
+        8   0   1   => (10+1)^2 not <= 100 so y = 10
+
+    Example: sqrt(32767)=181
+        y   pwr square
+        0   128 16384   => y=128
+        128 64  (128+64)^2=36864    => no change
+        128 32  (128+32)^2=25600    => y = 128+32
+        160 16  (160+16)^2=30976    => y = 160+16
+        176 8   (176+8)^2=33856     => no change
+        176 4   (176+4)^2=32400     => y = 176+4
+        180 2   (180+2)^2=33124     => no change
+        180 1   (180+1)^2=32761     => y = 180+1 = 181
+    */
     function int sqrt(int x) {
-        return x;
+        var int result, pwr, square;
+        let result = 0;
+        let pwr = 256; // 2^8
+        while (pwr > 1) {
+            let pwr = pwr / 2;
+            let square = (result + pwr) * (result + pwr);
+            if ((x > (square - 1)) & (square > 0)) {
+                let result = result + pwr;
+            }
+        }
+        return result;
     }
 
     /** Returns the greater number. */
