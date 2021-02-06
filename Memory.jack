@@ -11,10 +11,16 @@
 class Memory {
 
     static Array ram;
+    static Array heap;
+    static int freelist;
 
     /** Initializes the class. */
     function void init() {
         let ram = 0;
+        let heap = 2048;
+        let freelist = 2048;
+        let heap[0] = 0;        // next
+        let heap[1] = 14335;    // size
         return;
     }
 
@@ -32,12 +38,51 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-        return 0;
+        var int candidateSegment, candidateSegmentSize, nextSegment, segment, segmentSize, block;
+        var boolean finished;
+
+        // find the candidate segment with best fit
+        let candidateSegment = -1;
+        let candidateSegmentSize = 32767;
+        let finished = false;
+        let nextSegment = 0;
+        while (~finished) {
+            let segment = nextSegment;
+            let nextSegment = heap[segment];
+            let segmentSize = heap[segment + 1];
+            if ((segmentSize > (size + 1)) & (segmentSize < candidateSegmentSize)) {
+                let candidateSegment = segment;
+                let candidateSegmentSize = segmentSize;
+            }
+            let finished = (nextSegment = 0);
+        }
+
+        if (candidateSegment = -1) { do Sys.error(1); }
+
+        // carve off a block of size size+2 from the end of our segment
+        let block = candidateSegment + candidateSegmentSize + 2 - size;
+        let heap[block - 1] = size;
+        let heap[block - 2] = 0;
+
+        // shrink the block we carved our segment from
+        let heap[candidateSegment + 1] = heap[candidateSegment + 1] - size - 2;
+
+        return block;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
+        var int segment;
+
+        // find the end of our linked list of segments
+        let segment = heap[segment];
+        while (~(heap[segment] = 0)) {
+            let segment = heap[segment];
+        }
+
+        // point the last segment to the one that we are deallocating
+        let heap[segment] = o - 2;
         return;
     }    
 }
