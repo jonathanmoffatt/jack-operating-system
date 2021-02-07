@@ -59,7 +59,12 @@ class Screen {
         let modulus = x - (word * 16);
         let address = (32 * y) + word;
         let value = Memory.peek(address + SCREEN_BASE);
-        do Memory.poke(address + SCREEN_BASE, value | bits[modulus]);
+        if (color) {
+            let value = value | bits[modulus];
+        } else {
+            let value = value & (~bits[modulus]);
+        }
+        do Memory.poke(address + SCREEN_BASE, value);
         return;
     }
 
