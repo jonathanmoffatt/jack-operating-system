@@ -55,9 +55,10 @@ class Screen {
     function void drawPixel(int x, int y) {
         var int address, value, word, modulus;
 
-        if ((x < 0) | (x > 511) | (y < 0) | (y > 255)) {
-            do Sys.error(2);
-        }
+        if (x < 0) { do Sys.error(11); }
+        if (x > 511) { do Sys.error(12); }
+        if (y < 0) { do Sys.error(13); }
+        if (y > 255) { do Sys.error(14); }
         
         let word = x / 16;
         let modulus = x - (word * 16);
@@ -160,7 +161,7 @@ class Screen {
         let maxY = Math.max(y1, y2);
         let y = minY;
         while (~(y > maxY)) {
-            do Screen.drawHorizontalLine(minX, maxY, y);
+            do Screen.drawHorizontalLine(minX, maxX, y);
             let y = y + 1;
         }
         return;
@@ -168,6 +169,16 @@ class Screen {
 
     /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
     function void drawCircle(int x, int y, int r) {
+        var int dy, dx, x1, x2, yy;
+
+        do Screen.drawPixel(x, y - r);
+        let dy = -r + 1;
+        while (dy < r) {
+            let dx = Math.sqrt((r * r) - (dy * dy));
+            do Screen.drawHorizontalLine(x - dx, x + dx, y + dy);
+            let dy = dy + 1;
+        }
+        do Screen.drawPixel(x, y + r);
         return;
     }
 }
