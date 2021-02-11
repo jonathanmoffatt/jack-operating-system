@@ -18,9 +18,18 @@ class Output {
 
     // Character map for displaying characters
     static Array charMaps; 
+    static int cursorRow, cursorColumn;
+    static int SCREEN_BASE, CLEAR_LEFT, CLEAR_RIGHT;
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
+        let SCREEN_BASE  = 16384;
+        let CLEAR_LEFT = 255; // 0000 0000 1111 1111
+        let CLEAR_RIGHT = 255 * 256; // 1111 1111 0000 0000
+        do Output.initMap();
+        let cursorRow = 0;
+        let cursorColumn = 0;
+        return;
     }
 
     // Initializes the character map array
@@ -71,7 +80,7 @@ class Output {
         do Output.create(64,30,51,51,59,59,59,27,3,30,0,0);  // @
         do Output.create(63,30,51,51,24,12,12,0,12,12,0,0);  // ?
 
-        do Output.create(65,0,0,0,0,0,0,0,0,0,0,0);          // A ** TO BE FILLED **
+        do Output.create(65,12,30,51,51,63,51,51,51,51,0,0); // A 
         do Output.create(66,31,51,51,51,31,51,51,51,31,0,0); // B
         do Output.create(67,28,54,35,3,3,3,35,54,28,0,0);    // C
         do Output.create(68,15,27,51,51,51,51,51,27,15,0,0); // D
@@ -143,9 +152,9 @@ class Output {
     // Creates the character map array of the given character index, using the given values.
     function void create(int index, int a, int b, int c, int d, int e,
                          int f, int g, int h, int i, int j, int k) {
-	var Array map;
+	    var Array map;
 
-	let map = Array.new(11);
+	    let map = Array.new(11);
         let charMaps[index] = map;
 
         let map[0] = a;
@@ -176,28 +185,80 @@ class Output {
     /** Moves the cursor to the j-th column of the i-th row,
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
+        let cursorRow = i;
+        let cursorColumn = j;
+        do Output.printChar(32);
+        do Output.backSpace();
+        return;
     }
 
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
+        var Array map;
+        var int i, addr, clear, currentValue, newValue;
+        var boolean shift;
+
+        let map = Output.getMap(c);
+        let i = 0;
+        let shift = (cursorColumn & 1) = 1;
+        while (i < 12) {
+            let addr = SCREEN_BASE + (cursorColumn / 2) + ((cursorRow * 32 * 11) + (i * 32));
+            let currentValue = Memory.peek(addr);
+            if (shift) {
+                let newValue = map[i] * 256; // shift left 8 bits
+                let newValue = (currentValue & CLEAR_LEFT) | newValue;
+            } else {
+                let newValue = map[i];
+                let newValue = (currentValue & CLEAR_RIGHT) | newValue;
+            }
+            do Memory.poke(addr, newValue);
+            let i = i + 1;
+        }
+        do Output.advanceCursor();
+        return;
     }
 
+    function void advanceCursor() {
+        let cursorColumn = cursorColumn + 1;
+        if (cursorColumn > 63) {
+            let cursorColumn = 0;
+            let cursorRow = cursorRow + 1;
+            if (cursorRow > 22) {
+                let cursorRow = 0;
+            }
+        }
+        return;
+    }
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        return;
     }
 
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+        return;
     }
 
     /** Advances the cursor to the beginning of the next line. */
     function void println() {
+        let cursorColumn = 64;
+        do Output.advanceCursor();
+        return;
     }
 
     /** Moves the cursor one column back. */
     function void backSpace() {
+        let cursorColumn = cursorColumn - 1;
+        if (cursorColumn < 0) {
+            let cursorColumn = 63;
+            let cursorRow = cursorRow - 1;
+            if (cursorRow < 0) {
+                let cursorRow = 22;
+            }
+        }
+        return;
     }
 }
