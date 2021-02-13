@@ -247,6 +247,19 @@ class Output {
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+        var int div, mod;
+
+        if (i < 0) {
+            do Output.printChar(45);
+            let i = -i;
+        }
+
+        let div = i / 10;
+        let mod = i - (div * 10);
+        if (div > 0) {
+            do Output.printInt(div);
+        }
+        do Output.printChar(48 + mod);
         return;
     }
 
