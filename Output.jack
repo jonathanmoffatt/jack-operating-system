@@ -19,13 +19,13 @@ class Output {
     // Character map for displaying characters
     static Array charMaps; 
     static int cursorRow, cursorColumn;
-    static int SCREEN_BASE, CLEAR_LEFT, CLEAR_RIGHT;
+    static int SCREEN_BASE, CLEAR_MSB, CLEAR_LSB;
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
         let SCREEN_BASE  = 16384;
-        let CLEAR_LEFT = 255; // 0000 0000 1111 1111
-        let CLEAR_RIGHT = 255 * 256; // 1111 1111 0000 0000
+        let CLEAR_MSB = 255; // 0000 0000 1111 1111
+        let CLEAR_LSB = 255 * 256; // 1111 1111 0000 0000
         do Output.initMap();
         let cursorRow = 0;
         let cursorColumn = 0;
@@ -202,18 +202,17 @@ class Output {
         let map = Output.getMap(c);
         let i = 0;
         let shift = (cursorColumn & 1) = 1;
+        let addr = SCREEN_BASE + (cursorColumn / 2) + (cursorRow * 32 * 11);
         while (i < 12) {
-            let addr = SCREEN_BASE + (cursorColumn / 2) + ((cursorRow * 32 * 11) + (i * 32));
             let currentValue = Memory.peek(addr);
             if (shift) {
-                let newValue = map[i] * 256; // shift left 8 bits
-                let newValue = (currentValue & CLEAR_LEFT) | newValue;
+                let newValue = (currentValue & CLEAR_MSB) | (map[i] * 256);
             } else {
-                let newValue = map[i];
-                let newValue = (currentValue & CLEAR_RIGHT) | newValue;
+                let newValue = (currentValue & CLEAR_LSB) | map[i];
             }
             do Memory.poke(addr, newValue);
             let i = i + 1;
+            let addr = addr + 32;
         }
         do Output.advanceCursor();
         return;
@@ -233,6 +232,15 @@ class Output {
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        var int i;
+        var char c;
+
+        let i = 0;
+        while (i < s.length()) {
+            let c = s.charAt(i);
+            do Output.printChar(c);
+            let i = i + 1;
+        }
         return;
     }
 
