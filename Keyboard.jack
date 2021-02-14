@@ -9,15 +9,19 @@
 class Keyboard {
 
     static int KEYBOARD, MAX_LENGTH;
-    static char CHAR_NEWLINE, CHAR_BACKSPACE, CHAR_CURSOR, CHAR_SPACE;
+    static char CHAR_NEWLINE, CHAR_BACKSPACE, CHAR_CURSOR, CHAR_SPACE, CHAR_HYPHEN, CHAR_ZERO, CHAR_NINE;
 
 
     /** Initializes the keyboard. */
     function void init() {
         let KEYBOARD = 24576;
         let MAX_LENGTH = 200;
+
         let CHAR_CURSOR = 0;
         let CHAR_SPACE = 32;
+        let CHAR_HYPHEN = 45;
+        let CHAR_ZERO = 48;
+        let CHAR_NINE = 57;
         let CHAR_NEWLINE = 128;
         let CHAR_BACKSPACE = 129;
         return;
@@ -86,7 +90,7 @@ class Keyboard {
             if (c = CHAR_NEWLINE) {
                 let finished = true;
             } else {
-                if (c = CHAR_BACKSPACE) {
+                if ((c = CHAR_BACKSPACE) & (result.length() > 0)) {
                     do result.eraseLastChar();
                     do Output.backSpace();
                 } else {
@@ -106,6 +110,39 @@ class Keyboard {
      * entered text is detected). Also handles user backspaces. 
      */
     function int readInt(String message) {
-        return 666;
+        var String input;
+        var int result, i;
+        var char c;
+        var boolean negative;
+
+        let input = Keyboard.readLine(message);
+        let result = 0;
+        let i = 0;
+        let negative = false;
+        while (i < input.length()) {
+            let c = input.charAt(i);
+            if ((i = 0) & (c = CHAR_HYPHEN)) {
+                let negative = true;
+            } else {
+                if (Keyboard.isDigit(c)) {
+                    let result = (result * 10) + Keyboard.digitToInt(c);
+                } else {
+                    let i = input.length() - 1;
+                }
+            }
+            let i = i + 1;
+        }
+        if (negative) {
+            let result = -result;
+        }
+        return result;
+    }
+
+    function boolean isDigit(char c) {
+        return (~(c < CHAR_ZERO)) & (~(c > CHAR_NINE));
+    }
+
+    function int digitToInt(char c) {
+        return c - CHAR_ZERO;
     }
 }
