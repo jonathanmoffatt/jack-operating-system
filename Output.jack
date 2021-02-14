@@ -195,6 +195,12 @@ class Output {
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
+        do Output.displayChar(c);
+        do Output.advanceCursor();
+        return;
+    }
+
+    function void displayChar(char c) {
         var Array map;
         var int i, addr, clear, currentValue, newValue;
         var boolean shift;
@@ -214,7 +220,6 @@ class Output {
             let i = i + 1;
             let addr = addr + 32;
         }
-        do Output.advanceCursor();
         return;
     }
 
@@ -270,7 +275,7 @@ class Output {
         return;
     }
 
-    /** Moves the cursor one column back. */
+    /** Moves the cursor one column back and deletes what was there. */
     function void backSpace() {
         let cursorColumn = cursorColumn - 1;
         if (cursorColumn < 0) {
@@ -280,6 +285,7 @@ class Output {
                 let cursorRow = 22;
             }
         }
+        do Output.displayChar(32);
         return;
     }
 }
